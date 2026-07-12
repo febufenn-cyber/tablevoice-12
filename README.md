@@ -1,80 +1,81 @@
 # Tablevoice
 
-> AI-assisted reputation operations for restaurants: understand every review, recommend the operational response, draft the public reply in the restaurant's voice, and detect listing errors that may cost trust or orders.
+> A risk-aware review-operations copilot for restaurants: understand every review, recommend the internal action, draft a public response in the restaurant’s voice, and preserve explicit human approval.
 
-**Blueprint origin:** inspired by the product shape pioneered by Superorder (YC S19), ranked #12 of 500 in the YC-500 Fable 5 Venture Blueprint (score 7.15/10).
+## Current repository position
 
-## Current phase
+Phase 0 established the concierge-validation operating system. **Phase 1 now implements the manual review copilot as working software**, stacked on the Phase 0 branch.
 
-**Phase 0 — Concierge validation is implemented as an operating system, not a SaaS build.**
-
-The purpose is to prove that restaurant decision-makers repeatedly:
-
-1. provide real reviews and business information;
-2. approve, edit, and publish Tablevoice drafts;
-3. act on listing or operational findings;
-4. return without repeated prompting; and
-5. pay for continued monitoring.
-
-Start with [`phase-0/README.md`](phase-0/README.md).
-
-## Product thesis
-
-Reply generation alone is a commodity. Tablevoice should become the decision layer between public reputation and restaurant operations:
+The implementation is deliberately manual at the platform boundary:
 
 ```text
-review or listing signal
+manual or CSV review intake
         ↓
-classification + risk
+verification and duplicate warning
         ↓
-recommended internal action
+classification + deterministic risk floor
         ↓
-public reply in restaurant voice
+internal action recommendation
         ↓
-owner approval
+restaurant-specific reply draft
         ↓
-publication + outcome evidence
+operator QA
         ↓
-recurring issue intelligence
+explicit approve / edit / reject / escalate
+        ↓
+restaurant publishes manually
+        ↓
+publication confirmation + weekly intelligence
 ```
 
-## MVP direction after validation
+## Run locally
 
-- Review inbox
-- Risk-aware AI reply drafts
-- Restaurant voice constitution
-- Listing-health audit
-- Internal issue actions
-- Weekly owner intelligence
-- Controlled approval and publishing
+```sh
+npm install
+cp .env.example .dev.vars
+npm run check
+npm run dev
+```
 
-## Proposed production architecture
+Open the local Worker URL to use the pilot operator console.
 
-`Workers + Supabase + model gateway` — Cloudflare Workers with Hono, Supabase Postgres/Auth/RLS, asynchronous queues, and model routing. Google Business Profile should be isolated behind a source adapter. Zomato must not be on the critical path until a supported integration route is verified.
+## Phase 1 components
 
-## Business hypothesis
+- Cloudflare Worker and Hono API
+- Supabase Auth/Postgres/RLS repository
+- In-memory repository for deterministic testing
+- Versioned restaurant voice profiles
+- Manual and CSV review ingestion
+- Controlled review state machine
+- Green/amber/red deterministic safety policy
+- Optional Claude drafting with schema validation
+- Fail-closed deterministic fallback
+- QA defect detection
+- Approval and edit history
+- Manual publication confirmation
+- Internal actions and listing findings
+- Weekly report drafts
+- Audit events and model-run records
+- Internal pilot console
+- CI, regression tests, and safety evaluation corpus
 
-| Dimension | Initial hypothesis |
-|---|---|
-| Monetization | Per-location monthly subscription or managed service |
-| First buyer | Single-location independent restaurant decision-maker |
-| Daily user | Owner, manager, receptionist, or agency operator — to be discovered |
-| GTM wedge | Evidence-backed free listing/reputation snapshot |
-| Retention wedge | Review workflow plus recurring issue intelligence |
-| Primary risk | Owners value the audit but do not form a recurring paid habit |
-| Trust model | Draft-first; explicit approval for every public response in Phase 0 |
+Read [`docs/PHASE_1.md`](docs/PHASE_1.md) for implementation boundaries and [`phase-1/README.md`](phase-1/README.md) for the release gate.
 
-## Phase sequence
+## Important boundary
 
-1. **Phase 0:** Concierge validation
-2. **Phase 1:** Manual/imported review copilot
-3. **Phase 2:** Google integration proof
-4. **Phase 3:** Production inbox and approval workflow
-5. **Phase 4:** Restaurant voice system
-6. **Phase 5:** Listing-health audit engine
-7. **Phase 6:** Issue-resolution layer
-8. **Phase 7:** Weekly owner intelligence
-9. **Phase 8:** Controlled autopilot
-10. **Phase 9+:** Multi-location, agency mode, and additional platforms
+The code does **not** mean the business hypothesis has passed. Phase 0’s decision record remains open until real restaurant behaviour and payment evidence are collected. Phase 1 also remains unapproved for production until staging RLS, tenant-isolation, sensitive-case, deletion, and pilot tests pass.
 
-No later phase is justified merely because its features are technically buildable. Each phase must pass its evidence gate.
+## Explicitly not implemented
+
+- Google OAuth or automatic review retrieval
+- Google or Zomato response publishing
+- Zomato scraping
+- Automatic public replies
+- Stripe self-service billing
+- Native mobile apps
+- `pgvector`
+- Agency white-labelling
+
+## Production direction
+
+The intended stack remains Cloudflare Workers + Hono, Supabase Auth/Postgres/RLS, asynchronous jobs where necessary, and model routing. Platform integrations stay behind separate capability adapters and later evidence gates.
