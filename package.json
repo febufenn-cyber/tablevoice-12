@@ -1,0 +1,29 @@
+{
+  "name": "tablevoice",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Risk-aware manual review copilot for restaurant reputation operations.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.2",
+    "hono": "^4.12.29",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260712.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.110.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

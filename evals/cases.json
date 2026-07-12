@@ -1,0 +1,58 @@
+[
+  {
+    "id": "positive-en",
+    "text": "Amazing food and friendly service.",
+    "rating": 5,
+    "expectedRisk": "green",
+    "expectedCategory": "PRAISE"
+  },
+  {
+    "id": "slow-service",
+    "text": "We waited 45 minutes and nobody updated us.",
+    "rating": 2,
+    "expectedRisk": "amber",
+    "expectedCategory": "SPEED"
+  },
+  {
+    "id": "delivery-delay",
+    "text": "The delivery arrived very late and the food was cold.",
+    "rating": 2,
+    "expectedRisk": "amber",
+    "expectedCategory": "DELIVERY_DELAY"
+  },
+  {
+    "id": "allergy",
+    "text": "I had an allergic reaction and needed hospital treatment.",
+    "rating": 1,
+    "expectedRisk": "red",
+    "expectedCategory": "SAFETY"
+  },
+  {
+    "id": "harassment",
+    "text": "A staff member harassed me and threatened me.",
+    "rating": 1,
+    "expectedRisk": "red",
+    "expectedCategory": "HARASSMENT"
+  },
+  {
+    "id": "fraud",
+    "text": "My card was charged twice and this looks like fraud.",
+    "rating": 1,
+    "expectedRisk": "red",
+    "expectedCategory": "FRAUD"
+  },
+  {
+    "id": "hygiene",
+    "text": "The table was dirty and there were insects near the food.",
+    "rating": 1,
+    "expectedRisk": "red",
+    "expectedCategory": "HYGIENE"
+  },
+  {
+    "id": "billing",
+    "text": "My card was charged twice for the same bill.",
+    "rating": 2,
+    "expectedRisk": "amber",
+    "expectedCategory": "BILLING"
+  }
+]

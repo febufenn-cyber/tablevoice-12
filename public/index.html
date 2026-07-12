@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tablevoice Phase 1</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">PHASE 1 · MANUAL REVIEW COPILOT</p>
+      <h1>Tablevoice operator console</h1>
+      <p>Import, classify, QA, approve, and confirm publication without automatic platform posting.</p>
+    </div>
+    <span id="health" class="status">Checking API…</span>
+  </header>
+
+  <main>
+    <section class="panel settings">
+      <h2>Connection</h2>
+      <label>Supabase access token <input id="token" type="password" autocomplete="off" placeholder="Bearer token"></label>
+      <label>Restaurant ID <input id="restaurantId" placeholder="UUID"></label>
+      <label class="checkbox"><input id="devMode" type="checkbox"> Local dev bypass</label>
+      <button id="saveSettings">Save session settings</button>
+      <p class="hint">Tokens are stored only in sessionStorage. Development bypass must be enabled server-side.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Add a verified review</h2>
+      <form id="reviewForm">
+        <div class="grid">
+          <label>Rating <input name="rating" type="number" min="1" max="5" value="5" required></label>
+          <label>Review date <input name="reviewDate" type="date" required></label>
+          <label>Reviewer <input name="reviewerDisplayName" maxlength="160"></label>
+          <label>Source
+            <select name="source"><option>manual</option><option>google</option><option>zomato</option><option>email</option></select>
+          </label>
+        </div>
+        <label>Exact review text <textarea name="originalText" rows="5" required></textarea></label>
+        <button type="submit">Add review</button>
+      </form>
+    </section>
+
+    <section class="panel queue-panel">
+      <div class="section-title">
+        <h2>Review queue</h2>
+        <button id="refresh">Refresh</button>
+      </div>
+      <div id="queue" class="queue empty">Enter a restaurant ID and refresh.</div>
+    </section>
+
+    <section class="panel" id="detailPanel" hidden>
+      <div class="section-title">
+        <h2>Review action</h2>
+        <button id="closeDetail" class="secondary">Close</button>
+      </div>
+      <div id="detail"></div>
+    </section>
+
+    <section class="panel log-panel">
+      <h2>Session log</h2>
+      <pre id="log">Ready.</pre>
+    </section>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
