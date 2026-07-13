@@ -38,8 +38,13 @@ describe('Phase 2 Google integration', () => {
       const url = asUrl(input);
       if (url === 'https://oauth2.googleapis.com/token') {
         const values = new URLSearchParams(String(init?.body ?? ''));
-        if (values.get('grant_type') === 'refresh_token') return json({ access_token: 'refreshed-access', expires_in: 3600, token_type: 'Bearer' });
-        return json({ access_token: 'initial-access', refresh_token: 'refresh-token', expires_in: 3600, token_type: 'Bearer', scope: 'https://www.googleapis.com/auth/business.manage' });
+        if (values.get('grant_type') === 'refresh_token') {
+          return json({ access_token: 'refreshed-access', expires_in: 3600, token_type: 'Bearer' });
+        }
+        return json({
+          access_token: 'initial-access', refresh_token: 'refresh-token', expires_in: 3600,
+          token_type: 'Bearer', scope: 'https://www.googleapis.com/auth/business.manage',
+        });
       }
       if (url.startsWith('https://mybusinessaccountmanagement.googleapis.com/v1/accounts')) {
         return json({ accounts: [{ name: 'accounts/123', accountName: 'Test Owner', type: 'PERSONAL' }] });
@@ -53,9 +58,13 @@ describe('Phase 2 Google integration', () => {
       }
       if (url.startsWith('https://mybusiness.googleapis.com/v4/accounts/123/locations/456/reviews')) {
         return json({ reviews: [{
-          name: 'accounts/123/locations/456/reviews/review-1', reviewId: 'review-1',
-          reviewer: { displayName: 'Anu' }, starRating: 'FIVE', comment: 'Excellent food and service.',
-          createTime: '2026-07-13T10:00:00Z', updateTime: '2026-07-13T10:00:00Z',
+          name: 'accounts/123/locations/456/reviews/review-1',
+          reviewId: 'review-1',
+          reviewer: { displayName: 'Anu' },
+          starRating: 'FIVE',
+          comment: 'Excellent food and service.',
+          createTime: '2026-07-13T10:00:00Z',
+          updateTime: '2026-07-13T10:00:00Z',
         }] });
       }
       if (url.startsWith('https://oauth2.googleapis.com/revoke')) return new Response(null, { status: 200 });
@@ -64,13 +73,20 @@ describe('Phase 2 Google integration', () => {
 
     integration = new GoogleIntegrationService(
       store,
-      new GoogleBusinessClient({ clientId: 'client', clientSecret: 'secret', redirectUri: 'https://tablevoice.test/oauth/google/callback' }, fakeFetch),
+      new GoogleBusinessClient({
+        clientId: 'client', clientSecret: 'secret', redirectUri: 'https://tablevoice.test/oauth/google/callback',
+      }, fakeFetch),
       new TokenCipher('test-google-encryption-key-123456789'),
-      { enabled: true, replyWritesEnabled: true, clientId: 'client', clientSecret: 'secret', redirectUri: 'https://tablevoice.test/oauth/google/callback' },
+      {
+        enabled: true, replyWritesEnabled: true, clientId: 'client', clientSecret: 'secret',
+        redirectUri: 'https://tablevoice.test/oauth/google/callback',
+      },
     );
     app = createApp({
-      authProvider: new FixedAuthProvider(actor), repositoryFactory,
-      intelligenceFactory: () => new RuleBasedIntelligence(), googleIntegrationFactory: () => integration,
+      authProvider: new FixedAuthProvider(actor),
+      repositoryFactory,
+      intelligenceFactory: () => new RuleBasedIntelligence(),
+      googleIntegrationFactory: () => integration,
     });
   });
 
@@ -80,11 +96,16 @@ describe('Phase 2 Google integration', () => {
     }, env))).organization;
     const restaurant = (await body(await app.request('/v1/restaurants', {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ organizationId: organization.id, brandName: 'Test Kitchen', defaultLanguage: 'English', timezone: 'Asia/Kolkata' }),
+      body: JSON.stringify({
+        organizationId: organization.id, brandName: 'Test Kitchen', defaultLanguage: 'English', timezone: 'Asia/Kolkata',
+      }),
     }, env))).restaurant;
     await app.request(`/v1/restaurants/${restaurant.id}/voice-profiles`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ supportedLanguages: ['English'], wordMin: 5, wordMax: 120, compensationPolicy: 'approval_required', activate: true }),
+      body: JSON.stringify({
+        supportedLanguages: ['English'], wordMin: 5, wordMax: 120,
+        compensationPolicy: 'approval_required', activate: true,
+      }),
     }, env);
     return restaurant;
   }
@@ -101,26 +122,40 @@ describe('Phase 2 Google integration', () => {
 
   it('connects, selects a location, syncs, approves, and publishes with express consent', async () => {
     const restaurant = await createRestaurantWithVoice();
-    const connect = await body(await app.request(`/v1/restaurants/${restaurant.id}/integrations/google/connect`, { method: 'POST' }, env));
+    const connect = await body(await app.request(
+      `/v1/restaurants/${restaurant.id}/integrations/google/connect`,
+      { method: 'POST' }, env,
+    ));
     const authorizationUrl = new URL(connect.authorizationUrl);
     expect(authorizationUrl.searchParams.get('access_type')).toBe('offline');
     expect(authorizationUrl.searchParams.get('code_challenge_method')).toBe('S256');
 
-    const callback = await app.request(`/oauth/google/callback?code=auth-code&state=${encodeURIComponent(authorizationUrl.searchParams.get('state')!)}`, {}, env);
+    const callback = await app.request(
+      `/oauth/google/callback?code=auth-code&state=${encodeURIComponent(authorizationUrl.searchParams.get('state')!)}`,
+      {}, env,
+    );
     expect(callback.status).toBe(200);
 
-    const accounts = await body(await app.request(`/v1/restaurants/${restaurant.id}/integrations/google/accounts`, {}, env));
+    const accounts = await body(await app.request(
+      `/v1/restaurants/${restaurant.id}/integrations/google/accounts`, {}, env,
+    ));
     expect(accounts.accounts[0].name).toBe('accounts/123');
     await app.request(`/v1/restaurants/${restaurant.id}/integrations/google/account`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ accountName: 'accounts/123' }),
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ accountName: 'accounts/123' }),
     }, env);
-    const locations = await body(await app.request(`/v1/restaurants/${restaurant.id}/integrations/google/locations?refresh=true`, {}, env));
+    const locations = await body(await app.request(
+      `/v1/restaurants/${restaurant.id}/integrations/google/locations?refresh=true`, {}, env,
+    ));
     expect(locations.locations[0].name).toBe('locations/456');
     await app.request(`/v1/restaurants/${restaurant.id}/integrations/google/location`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ locationName: 'locations/456' }),
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ locationName: 'locations/456' }),
     }, env);
 
-    const sync = await body(await app.request(`/v1/restaurants/${restaurant.id}/integrations/google/sync`, { method: 'POST' }, env));
+    const sync = await body(await app.request(
+      `/v1/restaurants/${restaurant.id}/integrations/google/sync`, { method: 'POST' }, env,
+    ));
     expect(sync.run.reviewsImported).toBe(1);
     const reviews = await body(await app.request(`/v1/restaurants/${restaurant.id}/reviews`, {}, env));
     const review = reviews.reviews[0];
@@ -129,7 +164,8 @@ describe('Phase 2 Google integration', () => {
 
     const processed = await body(await app.request(`/v1/reviews/${review.id}/process`, { method: 'POST' }, env));
     await app.request(`/v1/reviews/${review.id}/qa`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ confirmedActions: [] }),
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ confirmedActions: [] }),
     }, env);
     await app.request(`/v1/reviews/${review.id}/decision`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -137,20 +173,27 @@ describe('Phase 2 Google integration', () => {
     }, env);
 
     const publish = await app.request(`/v1/reviews/${review.id}/integrations/google/publish`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ consent: true }),
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ consent: true }),
     }, env);
     const published = await body(publish);
     expect(publish.status).toBe(200);
     expect(published.review.state).toBe('published');
     expect(replyWrites).toHaveLength(1);
-    expect(JSON.parse(replyWrites[0].body).comment).toBe(processed.draft.text);
+    const replyWrite = replyWrites[0];
+    expect(replyWrite).toBeDefined();
+    expect(JSON.parse(replyWrite!.body).comment).toBe(processed.draft.text);
   });
 
   it('rejects a Google reply write without explicit consent', async () => {
     const restaurant = await createRestaurantWithVoice();
-    const response = await app.request(`/v1/reviews/00000000-0000-4000-8000-000000000000/integrations/google/publish`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ consent: false }),
-    }, env);
+    const response = await app.request(
+      '/v1/reviews/00000000-0000-4000-8000-000000000000/integrations/google/publish',
+      {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ consent: false }),
+      }, env,
+    );
     expect(response.status).toBeGreaterThanOrEqual(400);
     expect(restaurant.id).toBeTruthy();
   });
