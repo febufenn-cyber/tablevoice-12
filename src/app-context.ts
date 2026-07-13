@@ -3,6 +3,7 @@ import type { Actor, AuditEvent, RestaurantRole, Review } from './domain/types';
 import type { AuthProvider } from './auth';
 import type { Repository, RepositoryFactory } from './repositories/repository';
 import type { ReviewIntelligence } from './services/intelligence';
+import type { GoogleIntegrationFactory } from './integrations/google/service';
 import { AppError } from './lib/errors';
 import { newId } from './lib/id';
 
@@ -13,6 +14,7 @@ export interface AppDependencies {
   authProvider?: AuthProvider;
   repositoryFactory?: RepositoryFactory;
   intelligenceFactory?: (env: CloudflareBindings) => ReviewIntelligence;
+  googleIntegrationFactory?: GoogleIntegrationFactory;
 }
 
 export function parse<T>(schema: z.ZodType<T>, value: unknown): T {

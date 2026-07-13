@@ -4,28 +4,26 @@
 
 ## Current repository position
 
-Phase 0 established the concierge-validation operating system. **Phase 1 now implements the manual review copilot as working software**, stacked on the Phase 0 branch.
+- **Phase 0:** concierge-validation operating system
+- **Phase 1:** working manual review copilot
+- **Phase 2:** Google Business Profile integration proof
 
-The implementation is deliberately manual at the platform boundary:
+The Google path is deliberately controlled rather than automatic:
 
 ```text
-manual or CSV review intake
+restaurant-authorised OAuth
         ↓
-verification and duplicate warning
+explicit account and location selection
+        ↓
+manual review sync
         ↓
 classification + deterministic risk floor
         ↓
-internal action recommendation
+operator QA and restaurant approval
         ↓
-restaurant-specific reply draft
+per-action express consent
         ↓
-operator QA
-        ↓
-explicit approve / edit / reject / escalate
-        ↓
-restaurant publishes manually
-        ↓
-publication confirmation + weekly intelligence
+optional Google reply publication
 ```
 
 ## Run locally
@@ -37,45 +35,70 @@ npm run check
 npm run dev
 ```
 
-Open the local Worker URL to use the pilot operator console.
+Google integration remains disabled unless the required staging credentials and feature flags are configured.
 
-## Phase 1 components
+## Implemented product foundation
 
 - Cloudflare Worker and Hono API
 - Supabase Auth/Postgres/RLS repository
-- In-memory repository for deterministic testing
+- In-memory repository for deterministic tests
 - Versioned restaurant voice profiles
 - Manual and CSV review ingestion
 - Controlled review state machine
 - Green/amber/red deterministic safety policy
 - Optional Claude drafting with schema validation
-- Fail-closed deterministic fallback
 - QA defect detection
 - Approval and edit history
-- Manual publication confirmation
-- Internal actions and listing findings
-- Weekly report drafts
+- Internal actions, listing findings, and weekly reports
 - Audit events and model-run records
 - Internal pilot console
-- CI, regression tests, and safety evaluation corpus
 
-Read [`docs/PHASE_1.md`](docs/PHASE_1.md) for implementation boundaries and [`phase-1/README.md`](phase-1/README.md) for the release gate.
+## Phase 2 Google proof
+
+- OAuth 2.0 authorisation-code flow with PKCE
+- Encrypted access and refresh tokens
+- Google account and location discovery
+- Explicit account and location selection
+- Paginated review retrieval
+- Idempotent external-to-local review mapping
+- Token refresh and reauthorisation state
+- Approved-reply publication behind a separate environment flag
+- Specific express consent for every reply write
+- Disconnect and token revocation
+- 30-day temporary-content expiry and restaurant-scoped purge
+- Mocked end-to-end integration tests
+
+Read [`phase-2/README.md`](phase-2/README.md) for the phase gate and [`docs/GOOGLE_SETUP.md`](docs/GOOGLE_SETUP.md) for staging setup.
 
 ## Important boundary
 
-The code does **not** mean the business hypothesis has passed. Phase 0’s decision record remains open until real restaurant behaviour and payment evidence are collected. Phase 1 also remains unapproved for production until staging RLS, tenant-isolation, sensitive-case, deletion, and pilot tests pass.
+The repository implementation does **not** mean the business or Google integration hypotheses have passed.
+
+Production rollout remains gated by:
+
+- Phase 0 customer and payment evidence
+- real Supabase RLS and tenant-isolation tests
+- Google project approval and non-zero quotas
+- OAuth consent-screen verification
+- a controlled real restaurant integration test
+- refresh, revocation, duplication, and retention tests
+- policy review of all stored and derived Google review data
+
+## Disabled by default
+
+- Google integration
+- Google reply writes
+- automatic review sync
+- automatic public replies
+- listing mutations
 
 ## Explicitly not implemented
 
-- Google OAuth or automatic review retrieval
-- Google or Zomato response publishing
-- Zomato scraping
-- Automatic public replies
+- Zomato scraping or unofficial automation
 - Stripe self-service billing
-- Native mobile apps
+- native mobile apps
 - `pgvector`
-- Agency white-labelling
+- agency white-labelling
+- automatic listing edits
 
-## Production direction
-
-The intended stack remains Cloudflare Workers + Hono, Supabase Auth/Postgres/RLS, asynchronous jobs where necessary, and model routing. Platform integrations stay behind separate capability adapters and later evidence gates.
+The product still works through manual and CSV intake when Google is unavailable, delayed, revoked, or intentionally disabled.
