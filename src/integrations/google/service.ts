@@ -1,6 +1,7 @@
-import type { Actor, Repository, Review } from '../../domain/types';
+import type { Actor, Review } from '../../domain/types';
 import { AppError } from '../../lib/errors';
 import { newId } from '../../lib/id';
+import type { Repository } from '../../repositories/repository';
 import { GoogleBusinessClient } from './client';
 import { createPkcePair, randomBase64Url, sha256Base64Url, TokenCipher } from './crypto';
 import {
@@ -85,10 +86,7 @@ export class GoogleIntegrationService {
       expiresAt,
       createdAt: now.toISOString(),
     });
-    return {
-      authorizationUrl: this.client.buildAuthorizationUrl(state, challenge),
-      expiresAt,
-    };
+    return { authorizationUrl: this.client.buildAuthorizationUrl(state, challenge), expiresAt };
   }
 
   async completeAuthorization(input: { code?: string; state?: string; error?: string }) {
@@ -365,12 +363,7 @@ export class GoogleIntegrationService {
     }));
   }
 
-  async purgeExpired(
-    actor: Actor,
-    repository: Repository,
-    restaurantId: string,
-    limit = 100,
-  ) {
+  async purgeExpired(actor: Actor, repository: Repository, restaurantId: string, limit = 100) {
     const links = await this.store.listExpiredReviewLinks(
       restaurantId,
       new Date().toISOString(),
