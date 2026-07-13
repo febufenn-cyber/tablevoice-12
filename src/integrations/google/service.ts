@@ -1,8 +1,8 @@
 import type { Actor, Repository, Review } from '../../domain/types';
 import { AppError } from '../../lib/errors';
 import { newId } from '../../lib/id';
-import { createPkcePair, randomBase64Url, sha256Base64Url, TokenCipher } from './crypto';
 import { GoogleBusinessClient } from './client';
+import { createPkcePair, randomBase64Url, sha256Base64Url, TokenCipher } from './crypto';
 import {
   MemoryGoogleIntegrationStore,
   SupabaseGoogleIntegrationStore,
@@ -47,14 +47,14 @@ function addSeconds(seconds: number): string {
   return new Date(Date.now() + Math.max(30, seconds) * 1000).toISOString();
 }
 
-function googleReviewText(review: GoogleReview): string {
+function reviewText(review: GoogleReview): string {
   return review.comment?.trim() || `${ratingMap[review.starRating]}-star Google rating without a written comment.`;
 }
 
-function connectionView(connection: GoogleConnection): GoogleConnectionView {
+function publicConnection(connection: GoogleConnection): GoogleConnectionView {
   const {
-    accessTokenCiphertext: _access,
-    refreshTokenCiphertext: _refresh,
+    accessTokenCiphertext: _accessToken,
+    refreshTokenCiphertext: _refreshToken,
     tokenType: _tokenType,
     ...view
   } = connection;
@@ -85,7 +85,10 @@ export class GoogleIntegrationService {
       expiresAt,
       createdAt: now.toISOString(),
     });
-    return { authorizationUrl: this.client.buildAuthorizationUrl(state, challenge), expiresAt };
+    return {
+      authorizationUrl: this.client.buildAuthorizationUrl(state, challenge),
+      expiresAt,
+    };
   }
 
   async completeAuthorization(input: { code?: string; state?: string; error?: string }) {
@@ -102,7 +105,9 @@ export class GoogleIntegrationService {
     const refreshTokenCiphertext = tokens.refresh_token
       ? await this.cipher.seal(tokens.refresh_token)
       : existing?.refreshTokenCiphertext;
-    if (!refreshTokenCiphertext) throw new AppError('Google did not return a refresh token. Reconnect with consent.', 409, 'google_refresh_token_missing');
+    if (!refreshTokenCiphertext) {
+      throw new AppError('Google did not return a refresh token. Reconnect with consent.', 409, 'google_refresh_token_missing');
+    }
 
     const connection = await this.store.upsertConnection({
       id: existing?.id ?? newId(),
@@ -122,12 +127,12 @@ export class GoogleIntegrationService {
       updatedAt: now,
       lastError: '',
     });
-    return connectionView(connection);
+    return publicConnection(connection);
   }
 
   async status(restaurantId: string): Promise<GoogleConnectionView | null> {
     const connection = await this.store.getConnection(restaurantId);
-    return connection ? connectionView(connection) : null;
+    return connection ? publicConnection(connection) : null;
   }
 
   async listAccounts(restaurantId: string): Promise<GoogleAccount[]> {
@@ -146,7 +151,7 @@ export class GoogleIntegrationService {
       lastError: '',
     });
     await this.store.replaceLocations(restaurantId, updated.id, []);
-    return connectionView(updated);
+    return publicConnection(updated);
   }
 
   async refreshLocations(restaurantId: string) {
@@ -188,8 +193,15 @@ export class GoogleIntegrationService {
     }
 
     const run: GoogleSyncRun = {
-      id: newId(), restaurantId, connectionId: connection.id, status: 'running',
-      reviewsSeen: 0, reviewsImported: 0, reviewsUpdated: 0, reviewsSkipped: 0, pagesFetched: 0,
+      id: newId(),
+      restaurantId,
+      connectionId: connection.id,
+      status: 'running',
+      reviewsSeen: 0,
+      reviewsImported: 0,
+      reviewsUpdated: 0,
+      reviewsSkipped: 0,
+      pagesFetched: 0,
       startedAt: new Date().toISOString(),
     };
     await this.store.createSyncRun(run);
@@ -221,7 +233,7 @@ export class GoogleIntegrationService {
             rating: ratingMap[googleReview.starRating],
             reviewDate: googleReview.createTime.slice(0, 10),
             reviewerDisplayName: googleReview.reviewer?.displayName,
-            originalText: googleReviewText(googleReview),
+            originalText: reviewText(googleReview),
             sourceReference: googleReview.name,
             state: 'verified',
             updatedAt: new Date().toISOString(),
@@ -237,7 +249,7 @@ export class GoogleIntegrationService {
             rating: ratingMap[googleReview.starRating],
             reviewDate: googleReview.createTime.slice(0, 10),
             reviewerDisplayName: googleReview.reviewer?.displayName,
-            originalText: googleReviewText(googleReview),
+            originalText: reviewText(googleReview),
             serviceMode: 'unknown',
             ingestionMethod: 'api',
             verificationStatus: 'verified',
@@ -276,7 +288,9 @@ export class GoogleIntegrationService {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown Google sync error.';
       await this.store.updateConnection(restaurantId, {
-        status: 'error', lastError: message, updatedAt: new Date().toISOString(),
+        status: 'error',
+        lastError: message,
+        updatedAt: new Date().toISOString(),
       }).catch(() => undefined);
       await this.store.updateSyncRun(run.id, {
         ...run,
@@ -292,7 +306,9 @@ export class GoogleIntegrationService {
     if (!this.config.replyWritesEnabled) {
       throw new AppError('Google reply writes are disabled for this environment.', 503, 'google_reply_writes_disabled');
     }
-    if (!consent) throw new AppError('Specific express consent is required for this reply.', 422, 'google_reply_consent_required');
+    if (!consent) {
+      throw new AppError('Specific express consent is required for this reply.', 422, 'google_reply_consent_required');
+    }
 
     const review = await repository.getReview(reviewId, actor);
     if (!review || review.source !== 'google') throw new AppError('Google review not found.', 404, 'not_found');
@@ -327,7 +343,8 @@ export class GoogleIntegrationService {
       updatedAt: new Date().toISOString(),
     });
     const updatedReview = await repository.updateReview(review.id, {
-      state: 'published', updatedAt: new Date().toISOString(),
+      state: 'published',
+      updatedAt: new Date().toISOString(),
     }, actor);
     return { review: updatedReview, googleReply: reply };
   }
@@ -338,7 +355,7 @@ export class GoogleIntegrationService {
       const encryptedToken = connection.refreshTokenCiphertext || connection.accessTokenCiphertext;
       if (encryptedToken) await this.client.revoke(await this.cipher.open(encryptedToken));
     }
-    return connectionView(await this.store.updateConnection(restaurantId, {
+    return publicConnection(await this.store.updateConnection(restaurantId, {
       status: 'disconnected',
       accessTokenCiphertext: '',
       refreshTokenCiphertext: '',
@@ -348,8 +365,14 @@ export class GoogleIntegrationService {
     }));
   }
 
-  async purgeExpired(actor: Actor, repository: Repository, limit = 100) {
+  async purgeExpired(
+    actor: Actor,
+    repository: Repository,
+    restaurantId: string,
+    limit = 100,
+  ) {
     const links = await this.store.listExpiredReviewLinks(
+      restaurantId,
       new Date().toISOString(),
       Math.min(Math.max(limit, 1), 500),
     );
@@ -396,7 +419,9 @@ export class GoogleIntegrationService {
     }
     if (!connection.refreshTokenCiphertext) {
       await this.store.updateConnection(restaurantId, {
-        status: 'needs_reauth', lastError: 'Refresh token missing.', updatedAt: new Date().toISOString(),
+        status: 'needs_reauth',
+        lastError: 'Refresh token missing.',
+        updatedAt: new Date().toISOString(),
       });
       throw new AppError('Google authorization must be renewed.', 401, 'google_reauth_required');
     }
