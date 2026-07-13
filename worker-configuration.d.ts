@@ -1,8 +1,16 @@
 interface CloudflareBindings {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
   ANTHROPIC_API_KEY?: string;
   ANTHROPIC_MODEL?: string;
+  GOOGLE_INTEGRATION_ENABLED?: string;
+  GOOGLE_REPLY_WRITES_ENABLED?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GOOGLE_REDIRECT_URI?: string;
+  GOOGLE_OAUTH_SUCCESS_URL?: string;
+  GOOGLE_TOKEN_ENCRYPTION_KEY?: string;
   DEV_AUTH_BYPASS?: string;
   DEV_USER_ID?: string;
   ASSETS?: Fetcher;
