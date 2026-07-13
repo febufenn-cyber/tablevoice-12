@@ -20,7 +20,8 @@ export function registerGoogleRoutes(app: Hono<AppEnv>, factory: GoogleIntegrati
     });
     if (integration.config.successUrl) {
       const redirect = new URL(integration.config.successUrl);
-      redirect.searchParams.set('google', 'connected'); redirect.searchParams.set('restaurantId', connection.restaurantId);
+      redirect.searchParams.set('google', 'connected');
+      redirect.searchParams.set('restaurantId', connection.restaurantId);
       return c.redirect(redirect.toString(), 302);
     }
     return c.json({ connection });
@@ -33,10 +34,15 @@ export function registerGoogleRoutes(app: Hono<AppEnv>, factory: GoogleIntegrati
   });
 
   app.post('/v1/restaurants/:restaurantId/integrations/google/connect', async (c) => {
-    const restaurantId = c.req.param('restaurantId'); const actor = c.get('actor'); const repository = c.get('repository');
+    const restaurantId = c.req.param('restaurantId');
+    const actor = c.get('actor');
+    const repository = c.get('repository');
     await requireRestaurantRole(repository, restaurantId, actor, [...managerRoles]);
     const result = await factory(c.env).startAuthorization(actor, restaurantId);
-    await audit(repository, actor, { action: 'google_oauth_started', resourceType: 'restaurant', resourceId: restaurantId, restaurantId, metadata: { expiresAt: result.expiresAt } });
+    await audit(repository, actor, {
+      action: 'google_oauth_started', resourceType: 'restaurant', resourceId: restaurantId, restaurantId,
+      metadata: { expiresAt: result.expiresAt },
+    });
     return c.json(result, 201);
   });
 
@@ -47,11 +53,16 @@ export function registerGoogleRoutes(app: Hono<AppEnv>, factory: GoogleIntegrati
   });
 
   app.post('/v1/restaurants/:restaurantId/integrations/google/account', async (c) => {
-    const restaurantId = c.req.param('restaurantId'); const actor = c.get('actor'); const repository = c.get('repository');
+    const restaurantId = c.req.param('restaurantId');
+    const actor = c.get('actor');
+    const repository = c.get('repository');
     await requireRestaurantRole(repository, restaurantId, actor, [...managerRoles]);
     const input = parse(accountSchema, await jsonBody(c));
     const connection = await factory(c.env).selectAccount(restaurantId, input.accountName);
-    await audit(repository, actor, { action: 'google_account_selected', resourceType: 'restaurant', resourceId: restaurantId, restaurantId, metadata: { accountName: input.accountName } });
+    await audit(repository, actor, {
+      action: 'google_account_selected', resourceType: 'restaurant', resourceId: restaurantId, restaurantId,
+      metadata: { accountName: input.accountName },
+    });
     return c.json({ connection });
   });
 
@@ -59,24 +70,36 @@ export function registerGoogleRoutes(app: Hono<AppEnv>, factory: GoogleIntegrati
     const restaurantId = c.req.param('restaurantId');
     await requireRestaurantRole(c.get('repository'), restaurantId, c.get('actor'), [...managerRoles]);
     const integration = factory(c.env);
-    const locations = c.req.query('refresh') === 'true' ? await integration.refreshLocations(restaurantId) : await integration.listStoredLocations(restaurantId);
+    const locations = c.req.query('refresh') === 'true'
+      ? await integration.refreshLocations(restaurantId)
+      : await integration.listStoredLocations(restaurantId);
     return c.json({ locations });
   });
 
   app.post('/v1/restaurants/:restaurantId/integrations/google/location', async (c) => {
-    const restaurantId = c.req.param('restaurantId'); const actor = c.get('actor'); const repository = c.get('repository');
+    const restaurantId = c.req.param('restaurantId');
+    const actor = c.get('actor');
+    const repository = c.get('repository');
     await requireRestaurantRole(repository, restaurantId, actor, [...managerRoles]);
     const input = parse(locationSchema, await jsonBody(c));
     const location = await factory(c.env).selectLocation(restaurantId, input.locationName);
-    await audit(repository, actor, { action: 'google_location_selected', resourceType: 'restaurant', resourceId: restaurantId, restaurantId, metadata: { locationName: input.locationName } });
+    await audit(repository, actor, {
+      action: 'google_location_selected', resourceType: 'restaurant', resourceId: restaurantId, restaurantId,
+      metadata: { locationName: input.locationName },
+    });
     return c.json({ location });
   });
 
   app.post('/v1/restaurants/:restaurantId/integrations/google/sync', async (c) => {
-    const restaurantId = c.req.param('restaurantId'); const actor = c.get('actor'); const repository = c.get('repository');
+    const restaurantId = c.req.param('restaurantId');
+    const actor = c.get('actor');
+    const repository = c.get('repository');
     await requireRestaurantRole(repository, restaurantId, actor, [...managerRoles]);
     const run = await factory(c.env).syncReviews(actor, repository, restaurantId);
-    await audit(repository, actor, { action: 'google_reviews_synced', resourceType: 'google_sync_run', resourceId: run.id, restaurantId, metadata: { reviewsSeen: run.reviewsSeen, imported: run.reviewsImported, updated: run.reviewsUpdated } });
+    await audit(repository, actor, {
+      action: 'google_reviews_synced', resourceType: 'google_sync_run', resourceId: run.id, restaurantId,
+      metadata: { reviewsSeen: run.reviewsSeen, imported: run.reviewsImported, updated: run.reviewsUpdated },
+    });
     return c.json({ run });
   });
 
@@ -87,29 +110,44 @@ export function registerGoogleRoutes(app: Hono<AppEnv>, factory: GoogleIntegrati
   });
 
   app.post('/v1/reviews/:reviewId/integrations/google/publish', async (c) => {
-    const reviewId = c.req.param('reviewId'); const actor = c.get('actor'); const repository = c.get('repository');
+    const reviewId = c.req.param('reviewId');
+    const actor = c.get('actor');
+    const repository = c.get('repository');
     const review = await requireReviewRole(repository, reviewId, actor, [...managerRoles]);
     const input = parse(publishSchema, await jsonBody(c));
     const result = await factory(c.env).publishApprovedReply(actor, repository, reviewId, input.consent);
-    await audit(repository, actor, { action: 'google_reply_published', resourceType: 'review', resourceId: reviewId, restaurantId: review.restaurantId, metadata: { explicitConsent: true } });
+    await audit(repository, actor, {
+      action: 'google_reply_published', resourceType: 'review', resourceId: reviewId, restaurantId: review.restaurantId,
+      metadata: { explicitConsent: true },
+    });
     return c.json(result);
   });
 
   app.post('/v1/restaurants/:restaurantId/integrations/google/purge-expired', async (c) => {
-    const restaurantId = c.req.param('restaurantId'); const actor = c.get('actor'); const repository = c.get('repository');
+    const restaurantId = c.req.param('restaurantId');
+    const actor = c.get('actor');
+    const repository = c.get('repository');
     await requireRestaurantRole(repository, restaurantId, actor, ['buyer', 'operator']);
     const input = parse(purgeSchema, await jsonBody(c));
-    const result = await factory(c.env).purgeExpired(actor, repository, input.limit);
-    await audit(repository, actor, { action: 'google_content_purged', resourceType: 'restaurant', resourceId: restaurantId, restaurantId, metadata: result });
+    const result = await factory(c.env).purgeExpired(actor, repository, restaurantId, input.limit);
+    await audit(repository, actor, {
+      action: 'google_content_purged', resourceType: 'restaurant', resourceId: restaurantId, restaurantId,
+      metadata: result,
+    });
     return c.json(result);
   });
 
   app.post('/v1/restaurants/:restaurantId/integrations/google/disconnect', async (c) => {
-    const restaurantId = c.req.param('restaurantId'); const actor = c.get('actor'); const repository = c.get('repository');
+    const restaurantId = c.req.param('restaurantId');
+    const actor = c.get('actor');
+    const repository = c.get('repository');
     await requireRestaurantRole(repository, restaurantId, actor, ['buyer', 'approver']);
     const input = parse(disconnectSchema, await jsonBody(c));
     const connection = await factory(c.env).disconnect(restaurantId, input.revoke);
-    await audit(repository, actor, { action: 'google_disconnected', resourceType: 'restaurant', resourceId: restaurantId, restaurantId, metadata: { revoked: input.revoke } });
+    await audit(repository, actor, {
+      action: 'google_disconnected', resourceType: 'restaurant', resourceId: restaurantId, restaurantId,
+      metadata: { revoked: input.revoke },
+    });
     return c.json({ connection });
   });
 }
