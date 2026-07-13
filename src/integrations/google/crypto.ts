@@ -14,6 +14,12 @@ function base64UrlToBytes(value: string): Uint8Array {
   return Uint8Array.from(binary, (character) => character.charCodeAt(0));
 }
 
+function copyToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
+
 export function randomBase64Url(size = 32): string {
   const bytes = new Uint8Array(size);
   crypto.getRandomValues(bytes);
@@ -42,7 +48,11 @@ export class TokenCipher {
   async seal(value: string): Promise<string> {
     const iv = new Uint8Array(12);
     crypto.getRandomValues(iv);
-    const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await encryptionKey(this.secret), encoder.encode(value));
+    const ciphertext = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      await encryptionKey(this.secret),
+      encoder.encode(value),
+    );
     return `v1.${bytesToBase64Url(iv)}.${bytesToBase64Url(new Uint8Array(ciphertext))}`;
   }
 
@@ -50,9 +60,9 @@ export class TokenCipher {
     const [version, encodedIv, encodedCiphertext] = value.split('.');
     if (version !== 'v1' || !encodedIv || !encodedCiphertext) throw new Error('Unsupported encrypted token format.');
     const plaintext = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: base64UrlToBytes(encodedIv) },
+      { name: 'AES-GCM', iv: copyToArrayBuffer(base64UrlToBytes(encodedIv)) },
       await encryptionKey(this.secret),
-      base64UrlToBytes(encodedCiphertext),
+      copyToArrayBuffer(base64UrlToBytes(encodedCiphertext)),
     );
     return decoder.decode(plaintext);
   }
