@@ -153,9 +153,16 @@ export class ReviewService {
       finalText?: string;
       editReason?: string;
       channel: Approval['channel'];
+      expectedReviewUpdatedAt?: string;
     },
   ): Promise<{ review: Review; approval: Approval; draft?: Draft }> {
     const review = await this.requireReview(reviewId);
+    if (input.expectedReviewUpdatedAt && review.updatedAt !== input.expectedReviewUpdatedAt) {
+      throw new AppError('The review changed after this approval screen was opened. Refresh before deciding.', 409, 'stale_review', {
+        expectedUpdatedAt: input.expectedReviewUpdatedAt,
+        currentUpdatedAt: review.updatedAt,
+      });
+    }
     if (!['awaiting_approval', 'escalated'].includes(review.state)) {
       throw new AppError(`Review cannot be decided from state ${review.state}.`, 409, 'invalid_state');
     }
