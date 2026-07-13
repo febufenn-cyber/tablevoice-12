@@ -55,6 +55,7 @@ export const approvalSchema = z.object({
   finalText: z.string().trim().max(12000).optional(),
   editReason: z.string().trim().max(500).optional(),
   channel: z.enum(['web', 'whatsapp_link', 'email_link', 'operator']).default('web'),
+  expectedReviewUpdatedAt: z.iso.datetime().optional(),
 }).superRefine((value, ctx) => {
   if (value.decision.startsWith('approved') && !value.finalText) {
     ctx.addIssue({ code: 'custom', path: ['finalText'], message: 'Approved decisions require finalText.' });

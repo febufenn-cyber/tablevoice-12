@@ -6,24 +6,29 @@
 
 - **Phase 0:** concierge-validation operating system
 - **Phase 1:** working manual review copilot
-- **Phase 2:** Google Business Profile integration proof
+- **Phase 2:** controlled Google Business Profile integration proof
+- **Phase 3:** production inbox and approval workflow
 
-The Google path is deliberately controlled rather than automatic:
+The operational path is now:
 
 ```text
-restaurant-authorised OAuth
+manual, CSV, or authorised Google review
         ↓
-explicit account and location selection
+production inbox work item
         ↓
-manual review sync
+priority, SLA, and assignee
         ↓
 classification + deterministic risk floor
         ↓
-operator QA and restaurant approval
+operator QA
         ↓
-per-action express consent
+authenticated one-time approval action
         ↓
-optional Google reply publication
+stale-write protection
+        ↓
+manual or explicitly consented Google publication
+        ↓
+publication-attempt ledger + timeline
 ```
 
 ## Run locally
@@ -35,13 +40,13 @@ npm run check
 npm run dev
 ```
 
-Google integration remains disabled unless the required staging credentials and feature flags are configured.
+The Google and Phase 3 workflow capabilities remain disabled until their migrations, server secrets, and staging gates are configured.
 
-## Implemented product foundation
+## Product foundation
 
 - Cloudflare Worker and Hono API
 - Supabase Auth/Postgres/RLS repository
-- In-memory repository for deterministic tests
+- In-memory repositories for deterministic tests
 - Versioned restaurant voice profiles
 - Manual and CSV review ingestion
 - Controlled review state machine
@@ -51,54 +56,68 @@ Google integration remains disabled unless the required staging credentials and 
 - Approval and edit history
 - Internal actions, listing findings, and weekly reports
 - Audit events and model-run records
-- Internal pilot console
 
 ## Phase 2 Google proof
 
 - OAuth 2.0 authorisation-code flow with PKCE
 - Encrypted access and refresh tokens
 - Google account and location discovery
-- Explicit account and location selection
-- Paginated review retrieval
-- Idempotent external-to-local review mapping
-- Token refresh and reauthorisation state
-- Approved-reply publication behind a separate environment flag
-- Specific express consent for every reply write
-- Disconnect and token revocation
-- 30-day temporary-content expiry and restaurant-scoped purge
-- Mocked end-to-end integration tests
+- Paginated, idempotent review sync
+- Token refresh, disconnect, and revocation
+- Reply publication behind an independent feature flag
+- Per-action express consent
+- Thirty-day temporary-content expiry path
 
-Read [`phase-2/README.md`](phase-2/README.md) for the phase gate and [`docs/GOOGLE_SETUP.md`](docs/GOOGLE_SETUP.md) for staging setup.
+Read [`phase-2/README.md`](phase-2/README.md) and [`docs/GOOGLE_SETUP.md`](docs/GOOGLE_SETUP.md).
+
+## Phase 3 production workflow
+
+- Denormalized inbox work items
+- Assignment, claiming, priority, due date, and next action
+- Cursor pagination and operational filters
+- SLA summary and overdue detection
+- Optimistic work-item concurrency
+- Stale approval-screen rejection
+- Authenticated, intended-user, one-time approval actions
+- Idempotent manual and Google publication attempts
+- Review timelines
+- Updated operator console
+
+Read [`phase-3/README.md`](phase-3/README.md).
+
+## Feature flags
+
+```text
+GOOGLE_INTEGRATION_ENABLED=false
+GOOGLE_REPLY_WRITES_ENABLED=false
+PHASE3_WORKFLOW_ENABLED=false
+```
+
+No flag enables automatic approval or automatic replies.
 
 ## Important boundary
 
-The repository implementation does **not** mean the business or Google integration hypotheses have passed.
+Repository implementation does **not** mean the product, Google integration, or production-workflow hypotheses have passed.
 
 Production rollout remains gated by:
 
 - Phase 0 customer and payment evidence
-- real Supabase RLS and tenant-isolation tests
-- Google project approval and non-zero quotas
-- OAuth consent-screen verification
-- a controlled real restaurant integration test
-- refresh, revocation, duplication, and retention tests
-- policy review of all stored and derived Google review data
-
-## Disabled by default
-
-- Google integration
-- Google reply writes
-- automatic review sync
-- automatic public replies
-- listing mutations
+- real Supabase tenant-isolation tests
+- Google project approval and quota
+- controlled OAuth and publication testing
+- Phase 3 claim-collision, stale-action, replay, and publication-failure tests
+- policy review of stored and derived platform data
+- a real restaurant team pilot
 
 ## Explicitly not implemented
 
+- Scheduled Google review sync
+- Automatic public replies
 - Zomato scraping or unofficial automation
 - Stripe self-service billing
-- native mobile apps
+- Native mobile apps
 - `pgvector`
-- agency white-labelling
-- automatic listing edits
+- Agency white-labelling
+- Automatic listing edits
 
-The product still works through manual and CSV intake when Google is unavailable, delayed, revoked, or intentionally disabled.
+The product continues to work through manual and CSV intake when Google or Phase 3 workflow features are unavailable or intentionally disabled.

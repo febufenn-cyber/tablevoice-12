@@ -4,10 +4,11 @@ import type { AuthProvider } from './auth';
 import type { Repository, RepositoryFactory } from './repositories/repository';
 import type { ReviewIntelligence } from './services/intelligence';
 import type { GoogleIntegrationFactory } from './integrations/google/service';
+import type { WorkflowFactory, WorkflowRuntime } from './workflow/runtime';
 import { AppError } from './lib/errors';
 import { newId } from './lib/id';
 
-export type AppVariables = { actor: Actor; repository: Repository; intelligence: ReviewIntelligence };
+export type AppVariables = { actor: Actor; repository: Repository; intelligence: ReviewIntelligence; workflow: WorkflowRuntime };
 export type AppEnv = { Bindings: CloudflareBindings; Variables: AppVariables };
 
 export interface AppDependencies {
@@ -15,6 +16,7 @@ export interface AppDependencies {
   repositoryFactory?: RepositoryFactory;
   intelligenceFactory?: (env: CloudflareBindings) => ReviewIntelligence;
   googleIntegrationFactory?: GoogleIntegrationFactory;
+  workflowFactory?: WorkflowFactory;
 }
 
 export function parse<T>(schema: z.ZodType<T>, value: unknown): T {

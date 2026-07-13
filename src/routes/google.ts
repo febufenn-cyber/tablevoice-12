@@ -3,6 +3,8 @@ import type { Hono } from 'hono';
 import type { AppEnv } from '../app-context';
 import { audit, jsonBody, parse, requireRestaurantRole, requireReviewRole } from '../app-context';
 import { googleIntegrationForEnv, type GoogleIntegrationFactory } from '../integrations/google/service';
+import { AppError } from '../lib/errors';
+import { ProductionWorkflowService } from '../workflow/service';
 
 const accountSchema = z.object({ accountName: z.string().regex(/^accounts\/[A-Za-z0-9_-]+$/) });
 const locationSchema = z.object({ locationName: z.string().regex(/^locations\/[A-Za-z0-9_-]+$/) });
@@ -96,6 +98,11 @@ export function registerGoogleRoutes(app: Hono<AppEnv>, factory: GoogleIntegrati
     const repository = c.get('repository');
     await requireRestaurantRole(repository, restaurantId, actor, [...managerRoles]);
     const run = await factory(c.env).syncReviews(actor, repository, restaurantId);
+    if (c.get('workflow').enabled) {
+      const workflow = new ProductionWorkflowService(c.get('workflow'), repository, actor);
+      const reviews = await repository.listReviews(restaurantId, { limit: 500 }, actor);
+      for (const review of reviews.filter((candidate) => candidate.source === 'google')) await workflow.syncReview(review);
+    }
     await audit(repository, actor, {
       action: 'google_reviews_synced', resourceType: 'google_sync_run', resourceId: run.id, restaurantId,
       metadata: { reviewsSeen: run.reviewsSeen, imported: run.reviewsImported, updated: run.reviewsUpdated },
@@ -115,12 +122,27 @@ export function registerGoogleRoutes(app: Hono<AppEnv>, factory: GoogleIntegrati
     const repository = c.get('repository');
     const review = await requireReviewRole(repository, reviewId, actor, [...managerRoles]);
     const input = parse(publishSchema, await jsonBody(c));
-    const result = await factory(c.env).publishApprovedReply(actor, repository, reviewId, input.consent);
-    await audit(repository, actor, {
-      action: 'google_reply_published', resourceType: 'review', resourceId: reviewId, restaurantId: review.restaurantId,
-      metadata: { explicitConsent: true },
-    });
-    return c.json(result);
+    const workflow = new ProductionWorkflowService(c.get('workflow'), repository, actor);
+    const attempt = c.get('workflow').enabled ? await workflow.startPublicationAttempt(review, 'google', c.req.header('idempotency-key')) : undefined;
+    try {
+      const result = await factory(c.env).publishApprovedReply(actor, repository, reviewId, input.consent);
+      await workflow.syncReview(result.review);
+      const completedAttempt = attempt ? await workflow.completePublicationAttempt(attempt.id, 'succeeded', {
+        externalReference: result.googleReply.updateTime,
+        metadata: { explicitConsent: true },
+      }) : undefined;
+      await audit(repository, actor, {
+        action: 'google_reply_published', resourceType: 'review', resourceId: reviewId, restaurantId: review.restaurantId,
+        metadata: { explicitConsent: true, publicationAttemptId: completedAttempt?.id },
+      });
+      return c.json({ ...result, ...(completedAttempt ? { publicationAttempt: completedAttempt } : {}) });
+    } catch (error) {
+      if (attempt) await workflow.completePublicationAttempt(attempt.id, 'failed', {
+        errorCode: error instanceof AppError ? error.code : 'google_publication_failed',
+        errorMessage: error instanceof Error ? error.message : 'Google publication failed',
+      }).catch(() => undefined);
+      throw error;
+    }
   });
 
   app.post('/v1/restaurants/:restaurantId/integrations/google/purge-expired', async (c) => {
