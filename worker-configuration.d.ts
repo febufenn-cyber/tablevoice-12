@@ -20,6 +20,9 @@ interface CloudflareBindings {
   PHASE8_AUTOPILOT_ENABLED?: string;
   PHASE8_AUTOPILOT_WRITES_ENABLED?: string;
   PHASE8_GLOBAL_KILL_SWITCH?: string;
+  PHASE9_PLATFORM_ENABLED?: string;
+  PHASE9_BILLING_WEBHOOKS_ENABLED?: string;
+  PHASE9_BILLING_WEBHOOK_SECRET?: string;
   DEV_AUTH_BYPASS?: string;
   DEV_USER_ID?: string;
   ASSETS?: Fetcher;

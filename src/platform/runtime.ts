@@ -1,0 +1,2 @@
+import{PlatformService,type PlatformFactory}from'./service';import{SupabasePlatformStore}from'./store';
+export const platformForEnv:PlatformFactory=env=>new PlatformService(new SupabasePlatformStore(env.SUPABASE_URL,env.SUPABASE_SERVICE_ROLE_KEY??''),{enabled:env.PHASE9_PLATFORM_ENABLED==='true',billingWebhooksEnabled:env.PHASE9_BILLING_WEBHOOKS_ENABLED==='true',billingSecret:env.PHASE9_BILLING_WEBHOOK_SECRET});

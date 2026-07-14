@@ -1,0 +1,12 @@
+export interface Brand{id:string;organizationId:string;name:string;status:'active'|'paused';createdAt:string;}
+export interface LocationGroup{id:string;organizationId:string;brandId:string;name:string;parentGroupId?:string;createdAt:string;}
+export interface LocationAssignment{id:string;organizationId:string;brandId:string;groupId?:string;restaurantId:string;createdAt:string;}
+export interface AgencyRelationship{id:string;agencyOrganizationId:string;clientOrganizationId:string;status:'pending'|'active'|'revoked';createdBy:string;createdAt:string;revokedAt?:string;}
+export interface DelegatedGrant{id:string;relationshipId:string;restaurantId?:string;capability:'view_reviews'|'approve_replies'|'manage_voice'|'manage_listings'|'manage_incidents'|'view_reports'|'manage_billing';active:boolean;grantedBy:string;grantedAt:string;revokedBy?:string;revokedAt?:string;}
+export interface Entitlement{id:string;organizationId:string;key:string;limit:number|null;enabled:boolean;source:'plan'|'override'|'trial';effectiveAt:string;expiresAt?:string;}
+export interface UsageEvent{id:string;organizationId:string;restaurantId?:string;metric:string;quantity:number;idempotencyKey:string;occurredAt:string;createdAt:string;}
+export interface SubscriptionRecord{id:string;organizationId:string;provider:'manual'|'stripe_adapter';externalCustomerId?:string;externalSubscriptionId?:string;plan:string;status:'trialing'|'active'|'past_due'|'paused'|'canceled';currentPeriodStart?:string;currentPeriodEnd?:string;updatedAt:string;}
+export interface BillingEvent{id:string;provider:string;externalEventId:string;type:string;payloadHash:string;status:'received'|'processed'|'ignored'|'failed';receivedAt:string;processedAt?:string;error?:string;}
+export interface ProviderCapability{id:string;provider:string;capability:'read_reviews'|'publish_replies'|'read_listing'|'write_listing'|'webhooks';supported:boolean;verificationStatus:'verified'|'unverified'|'blocked';evidence:string;updatedAt:string;}
+export interface BulkOperationPreview{id:string;organizationId:string;operation:'apply_voice'|'pause_autopilot'|'export_report';restaurantIds:string[];eligibleIds:string[];blocked:Record<string,string>;idempotencyKey:string;status:'preview'|'executed';createdBy:string;createdAt:string;executedAt?:string;}
+export interface HierarchyPolicy{source:'organization'|'brand'|'group'|'restaurant';safetyLevel:number;settings:Record<string,unknown>;}
