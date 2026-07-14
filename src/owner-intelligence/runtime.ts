@@ -1,0 +1,2 @@
+import{OwnerIntelligenceService,type OwnerIntelligenceFactory}from'./service';import{SupabaseOwnerIntelligenceStore}from'./store';
+export const ownerIntelligenceForEnv:OwnerIntelligenceFactory=env=>new OwnerIntelligenceService(new SupabaseOwnerIntelligenceStore(env.SUPABASE_URL,env.SUPABASE_SERVICE_ROLE_KEY??''),{enabled:env.PHASE7_OWNER_INTELLIGENCE_ENABLED==='true',deliveryEnabled:env.PHASE7_DELIVERY_ENABLED==='true'});
