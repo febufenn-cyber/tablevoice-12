@@ -1,0 +1,7 @@
+export interface MetricValue{value:number|null;missing:boolean;unit:'count'|'ratio'|'minutes'|'currency_minor';evidenceIds:string[];}
+export interface ReportMetricSnapshot{id:string;restaurantId:string;periodStart:string;periodEnd:string;metrics:Record<string,MetricValue>;completeness:{available:number;missing:number;notes:string[]};createdAt:string;}
+export interface OwnerRecommendation{id:string;reportId:string;restaurantId:string;rank:number;title:string;rationale:string;evidenceIds:string[];status:'proposed'|'selected'|'completed'|'dismissed';selectedAt?:string;completedAt?:string;completionEvidence?:string;}
+export interface OwnerIntelligenceReport{id:string;restaurantId:string;periodStart:string;periodEnd:string;version:number;status:'draft'|'validated'|'approved'|'delivered';metricSnapshotId:string;headline:string;wins:string[];risks:string[];pendingDecisions:string[];smallSample:boolean;createdBy:string;createdAt:string;approvedBy?:string;approvedAt?:string;}
+export interface ReportDeliveryAttempt{id:string;restaurantId:string;reportId:string;channel:'in_app'|'email'|'whatsapp_link';destination?:string;idempotencyKey:string;status:'pending'|'delivered'|'failed'|'blocked_by_preference';error?:string;createdAt:string;completedAt?:string;}
+export interface NotificationPreference{restaurantId:string;userId:string;email:boolean;whatsappLink:boolean;inApp:boolean;updatedAt:string;}
+export interface ReportFeedback{id:string;restaurantId:string;reportId:string;userId:string;useful:boolean;comment?:string;createdAt:string;}
