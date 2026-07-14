@@ -8,7 +8,7 @@ import type { BusinessFactVersion, CanonicalBusinessFacts, ListingComparisonRun,
 export interface ListingHealthConfig { enabled: boolean; }
 export interface ListingHealthFactory { (env: CloudflareBindings): ListingHealthService; }
 
-export function normalizePhone(value: string): string { const digits=value.replace(/\D/g,''); return digits.length>10?`+${digits}`:digits; }
+export function normalizePhone(value: string): string { const digits=value.replace(/\D/g,''); return digits.length>=10?digits.slice(-10):digits; }
 export function normalizeUrl(value: string): string { try { const url=new URL(/^https?:\/\//i.test(value)?value:`https://${value}`); return `${url.hostname.replace(/^www\./,'').toLowerCase()}${url.pathname.replace(/\/$/,'')}`; } catch { return value.trim().toLowerCase().replace(/\/$/,''); } }
 export function normalizeAddress(value: string): string { return value.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim(); }
 export function normalizeHours(value: Record<string,string[]>): string { return JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([day,ranges])=>[day.toLowerCase(),[...ranges].map(v=>v.trim()).sort()]))); }
