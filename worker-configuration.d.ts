@@ -15,6 +15,8 @@ interface CloudflareBindings {
   PHASE4_VOICE_ENABLED?: string;
   PHASE5_LISTING_HEALTH_ENABLED?: string;
   PHASE6_INCIDENTS_ENABLED?: string;
+  PHASE7_OWNER_INTELLIGENCE_ENABLED?: string;
+  PHASE7_DELIVERY_ENABLED?: string;
   DEV_AUTH_BYPASS?: string;
   DEV_USER_ID?: string;
   ASSETS?: Fetcher;
