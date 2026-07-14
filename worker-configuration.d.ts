@@ -12,6 +12,7 @@ interface CloudflareBindings {
   GOOGLE_OAUTH_SUCCESS_URL?: string;
   GOOGLE_TOKEN_ENCRYPTION_KEY?: string;
   PHASE3_WORKFLOW_ENABLED?: string;
+  PHASE4_VOICE_ENABLED?: string;
   DEV_AUTH_BYPASS?: string;
   DEV_USER_ID?: string;
   ASSETS?: Fetcher;
