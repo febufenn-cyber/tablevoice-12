@@ -6,6 +6,7 @@ import type { ReviewIntelligence } from './services/intelligence';
 import type { GoogleIntegrationFactory } from './integrations/google/service';
 import type { WorkflowFactory, WorkflowRuntime } from './workflow/runtime';
 import type { VoiceSystemFactory } from './voice/service';
+import type { ListingHealthFactory } from './listing-health/service';
 import { AppError } from './lib/errors';
 import { newId } from './lib/id';
 
@@ -19,6 +20,7 @@ export interface AppDependencies {
   googleIntegrationFactory?: GoogleIntegrationFactory;
   workflowFactory?: WorkflowFactory;
   voiceSystemFactory?: VoiceSystemFactory;
+  listingHealthFactory?: ListingHealthFactory;
 }
 
 export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
