@@ -8,6 +8,11 @@
 - **Phase 1:** working manual review copilot
 - **Phase 2:** controlled Google Business Profile integration proof
 - **Phase 3:** production inbox and approval workflow
+- **Remaining:** six roadmap phases, Phase 4 through Phase 9
+
+The verified scope, entry gates, acceptance tests, and autonomous merge protocol for all remaining work are defined in [`docs/REMAINING_PHASES_EXECUTION_PLAN.md`](docs/REMAINING_PHASES_EXECUTION_PLAN.md).
+
+After that plan is merged, the command **`build`** authorizes sequential implementation of Phases 4–9. Every phase must branch from the latest verified `main`, pass CI, squash-merge as its own commit, and have the remote `main` SHA confirmed before the next phase begins.
 
 The operational path is now:
 
@@ -84,6 +89,17 @@ Read [`phase-2/README.md`](phase-2/README.md) and [`docs/GOOGLE_SETUP.md`](docs/
 - Updated operator console
 
 Read [`phase-3/README.md`](phase-3/README.md).
+
+## Remaining roadmap
+
+1. **Phase 4:** Restaurant Voice System
+2. **Phase 5:** Listing-Health Audit Engine
+3. **Phase 6:** Issue-Resolution Layer
+4. **Phase 7:** Weekly Owner Intelligence
+5. **Phase 8:** Controlled Autopilot
+6. **Phase 9:** Multi-Location, Agency, Billing, and Supported Platform Expansion
+
+The complete executable plan is [`docs/REMAINING_PHASES_EXECUTION_PLAN.md`](docs/REMAINING_PHASES_EXECUTION_PLAN.md).
 
 ## Feature flags
 
