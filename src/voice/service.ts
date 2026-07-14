@@ -149,7 +149,7 @@ export class VoiceSystemService {
     if (!profile || profile.restaurantId !== restaurantId) throw new AppError('Voice profile not found.', 404, 'not_found');
     const rules = await this.store.listRules(profileId);
     const examples = await this.store.listExamples(restaurantId);
-    const preferred = [...profile.preferredPhrases, ...rules.filter((item) => item.kind === 'preferred_phrase').map((item) => item.value)];
+    const preferred = [...rules.filter((item) => item.kind === 'preferred_phrase').map((item) => item.value), ...profile.preferredPhrases];
     const prohibited = [...profile.prohibitedPhrases, ...rules.filter((item) => item.kind === 'prohibited_phrase').map((item) => item.value)];
     const greeting = rules.find((item) => item.kind === 'greeting' && (!item.language || item.language === language))?.value ?? 'Thank you for sharing your feedback.';
     const posture = rules.find((item) => item.kind === 'category_posture' && item.category === category)?.value;
