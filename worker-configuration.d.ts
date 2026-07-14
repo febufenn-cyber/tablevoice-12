@@ -17,6 +17,9 @@ interface CloudflareBindings {
   PHASE6_INCIDENTS_ENABLED?: string;
   PHASE7_OWNER_INTELLIGENCE_ENABLED?: string;
   PHASE7_DELIVERY_ENABLED?: string;
+  PHASE8_AUTOPILOT_ENABLED?: string;
+  PHASE8_AUTOPILOT_WRITES_ENABLED?: string;
+  PHASE8_GLOBAL_KILL_SWITCH?: string;
   DEV_AUTH_BYPASS?: string;
   DEV_USER_ID?: string;
   ASSETS?: Fetcher;
