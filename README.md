@@ -1,39 +1,48 @@
 # Tablevoice
 
-> A risk-aware review-operations copilot for restaurants: understand every review, recommend the internal action, draft a public response in the restaurant’s voice, and preserve explicit human approval.
+> A risk-aware review-operations platform for restaurants: understand every review, recommend the internal action, draft a public response in the restaurant’s voice, preserve explicit approval, and connect reputation signals to accountable operations.
 
-## Current repository position
+## Repository roadmap status
+
+All planned software phases are implemented on review branches and merged sequentially through the Phase 9 release candidate:
 
 - **Phase 0:** concierge-validation operating system
-- **Phase 1:** working manual review copilot
+- **Phase 1:** manual review copilot
 - **Phase 2:** controlled Google Business Profile integration proof
 - **Phase 3:** production inbox and approval workflow
-- **Remaining:** six roadmap phases, Phase 4 through Phase 9
+- **Phase 4:** restaurant voice system
+- **Phase 5:** listing-health audit engine
+- **Phase 6:** issue-resolution layer
+- **Phase 7:** weekly owner intelligence
+- **Phase 8:** controlled autopilot
+- **Phase 9:** multi-location, agency, entitlement, billing-event, and provider-capability platform
 
-The verified scope, entry gates, acceptance tests, and autonomous merge protocol for all remaining work are defined in [`docs/REMAINING_PHASES_EXECUTION_PLAN.md`](docs/REMAINING_PHASES_EXECUTION_PLAN.md).
+The scope, entry gates, acceptance tests, and autonomous merge protocol are recorded in [`docs/REMAINING_PHASES_EXECUTION_PLAN.md`](docs/REMAINING_PHASES_EXECUTION_PLAN.md). Each phase also has a dedicated `phase-N/README.md` deployment contract.
 
-After that plan is merged, the command **`build`** authorizes sequential implementation of Phases 4–9. Every phase must branch from the latest verified `main`, pass CI, squash-merge as its own commit, and have the remote `main` SHA confirmed before the next phase begins.
-
-The operational path is now:
+## End-to-end product path
 
 ```text
 manual, CSV, or authorised Google review
         ↓
-production inbox work item
-        ↓
-priority, SLA, and assignee
+production inbox + ownership + SLA
         ↓
 classification + deterministic risk floor
         ↓
-operator QA
+restaurant voice version + draft provenance
         ↓
-authenticated one-time approval action
+operator QA or tightly allowlisted shadow/autopilot decision
         ↓
-stale-write protection
+explicit approval / consent / provider write gate
         ↓
-manual or explicitly consented Google publication
+publication-attempt ledger
         ↓
-publication-attempt ledger + timeline
+listing-health signals + operational incidents
+        ↓
+verified actions and resolution evidence
+        ↓
+reproducible weekly owner intelligence
+        ↓
+organization / brand / group / agency / entitlement controls
 ```
 
 ## Run locally
@@ -45,95 +54,67 @@ npm run check
 npm run dev
 ```
 
-The Google and Phase 3 workflow capabilities remain disabled until their migrations, server secrets, and staging gates are configured.
+## Major implemented controls
 
-## Product foundation
-
-- Cloudflare Worker and Hono API
-- Supabase Auth/Postgres/RLS repository
-- In-memory repositories for deterministic tests
-- Versioned restaurant voice profiles
-- Manual and CSV review ingestion
-- Controlled review state machine
+- Supabase Auth, Postgres, RLS foundations, and server-side authorization
+- Cloudflare Worker + Hono API
+- Manual, CSV, and controlled Google review intake
 - Green/amber/red deterministic safety policy
-- Optional Claude drafting with schema validation
-- QA defect detection
-- Approval and edit history
-- Internal actions, listing findings, and weekly reports
-- Audit events and model-run records
-
-## Phase 2 Google proof
-
-- OAuth 2.0 authorisation-code flow with PKCE
-- Encrypted access and refresh tokens
-- Google account and location discovery
-- Paginated, idempotent review sync
-- Token refresh, disconnect, and revocation
-- Reply publication behind an independent feature flag
-- Per-action express consent
-- Thirty-day temporary-content expiry path
-
-Read [`phase-2/README.md`](phase-2/README.md) and [`docs/GOOGLE_SETUP.md`](docs/GOOGLE_SETUP.md).
-
-## Phase 3 production workflow
-
-- Denormalized inbox work items
-- Assignment, claiming, priority, due date, and next action
-- Cursor pagination and operational filters
-- SLA summary and overdue detection
-- Optimistic work-item concurrency
-- Stale approval-screen rejection
-- Authenticated, intended-user, one-time approval actions
-- Idempotent manual and Google publication attempts
-- Review timelines
-- Updated operator console
-
-Read [`phase-3/README.md`](phase-3/README.md).
-
-## Remaining roadmap
-
-1. **Phase 4:** Restaurant Voice System
-2. **Phase 5:** Listing-Health Audit Engine
-3. **Phase 6:** Issue-Resolution Layer
-4. **Phase 7:** Weekly Owner Intelligence
-5. **Phase 8:** Controlled Autopilot
-6. **Phase 9:** Multi-Location, Agency, Billing, and Supported Platform Expansion
-
-The complete executable plan is [`docs/REMAINING_PHASES_EXECUTION_PLAN.md`](docs/REMAINING_PHASES_EXECUTION_PLAN.md).
+- Versioned restaurant voice profiles with preview, candidates, evidence, and rollback
+- Assignment, SLA, optimistic concurrency, one-time approval actions, and publication history
+- Evidence-backed listing comparisons and correction verification
+- Operational incidents, restricted recovery records, and verified closure
+- Reproducible owner reports with missing-data semantics and three-action limits
+- Green-only controlled autopilot with shadow evidence, consent, provenance, and kill switches
+- Multi-location hierarchy, agency delegation, entitlements, usage events, signed billing events, provider capability evidence, and preview-first bulk operations
 
 ## Feature flags
+
+Every advanced capability remains independently disabled until its migration and staging gate pass:
 
 ```text
 GOOGLE_INTEGRATION_ENABLED=false
 GOOGLE_REPLY_WRITES_ENABLED=false
 PHASE3_WORKFLOW_ENABLED=false
+PHASE4_VOICE_ENABLED=false
+PHASE5_LISTING_HEALTH_ENABLED=false
+PHASE6_INCIDENTS_ENABLED=false
+PHASE7_OWNER_INTELLIGENCE_ENABLED=false
+PHASE7_DELIVERY_ENABLED=false
+PHASE8_AUTOPILOT_ENABLED=false
+PHASE8_AUTOPILOT_WRITES_ENABLED=false
+PHASE8_GLOBAL_KILL_SWITCH=true
+PHASE9_PLATFORM_ENABLED=false
+PHASE9_BILLING_WEBHOOKS_ENABLED=false
 ```
 
-No flag enables automatic approval or automatic replies.
+No single flag bypasses review risk, authorization, consent, tenant isolation, provider capability, or kill-switch controls.
 
 ## Important boundary
 
-Repository implementation does **not** mean the product, Google integration, or production-workflow hypotheses have passed.
+**Repository implementation is not production approval.** Rollout remains gated by:
 
-Production rollout remains gated by:
+- Phase 0 customer, workflow, pricing, and payment evidence
+- applying migrations `0001` through `0010` to disposable staging first
+- real Supabase tenant-isolation and role-matrix testing
+- Google project approval, quota, OAuth, refresh, revocation, retention, and controlled publication tests
+- voice-version provenance and rollback verification
+- listing normalization and correction-verification drills
+- restricted-incident access, compensation authority, and reopen tests
+- report metric reconciliation and notification-provider tests
+- autopilot shadow thresholds, consent, kill switches, incident thresholds, and provider-specific write gates
+- agency revocation, entitlement reconciliation, billing-event replay, and bulk-operation drills
+- legal, privacy, platform-policy, security, and customer-pilot review
 
-- Phase 0 customer and payment evidence
-- real Supabase tenant-isolation tests
-- Google project approval and quota
-- controlled OAuth and publication testing
-- Phase 3 claim-collision, stale-action, replay, and publication-failure tests
-- policy review of stored and derived platform data
-- a real restaurant team pilot
+## Explicit non-claims and exclusions
 
-## Explicitly not implemented
+- No unsupported Zomato scraping or automation
+- No fabricated provider capability
+- No scheduled Google sync enabled by default
+- No automatic public replies without the Phase 8 and provider-specific gates
+- No automatic listing mutation
+- No live Stripe configuration or self-service billing claim; Phase 9 provides a generic signed billing-event contract
+- No native mobile application
+- No `pgvector` dependency
 
-- Scheduled Google review sync
-- Automatic public replies
-- Zomato scraping or unofficial automation
-- Stripe self-service billing
-- Native mobile apps
-- `pgvector`
-- Agency white-labelling
-- Automatic listing edits
-
-The product continues to work through manual and CSV intake when Google or Phase 3 workflow features are unavailable or intentionally disabled.
+The product continues to operate through manual and CSV intake when Google, automation, billing, or expansion features are unavailable or deliberately disabled.
