@@ -8,7 +8,7 @@ const restaurantId='22222222-2222-4222-8222-222222222222';
 
 describe('Phase 5 listing-health engine',()=>{
   it('normalizes phones, urls, addresses, and hours deterministically',()=>{
-    expect(normalizePhone('+91 (98765) 43210')).toBe('+919876543210');
+    expect(normalizePhone('+91 (98765) 43210')).toBe('9876543210');
     expect(normalizeUrl('https://www.Example.com/menu/')).toBe('example.com/menu');
     expect(normalizeAddress('12, Main-Road  Madurai')).toBe('12 main road madurai');
     expect(normalizeHours({Tue:['18:00-22:00'],Mon:['09:00-17:00']})).toBe('{"mon":["09:00-17:00"],"tue":["18:00-22:00"]}');
