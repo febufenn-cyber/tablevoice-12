@@ -5,6 +5,7 @@ import type { Repository, RepositoryFactory } from './repositories/repository';
 import type { ReviewIntelligence } from './services/intelligence';
 import type { GoogleIntegrationFactory } from './integrations/google/service';
 import type { WorkflowFactory, WorkflowRuntime } from './workflow/runtime';
+import type { VoiceSystemFactory } from './voice/service';
 import { AppError } from './lib/errors';
 import { newId } from './lib/id';
 
@@ -17,6 +18,7 @@ export interface AppDependencies {
   intelligenceFactory?: (env: CloudflareBindings) => ReviewIntelligence;
   googleIntegrationFactory?: GoogleIntegrationFactory;
   workflowFactory?: WorkflowFactory;
+  voiceSystemFactory?: VoiceSystemFactory;
 }
 
 export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
