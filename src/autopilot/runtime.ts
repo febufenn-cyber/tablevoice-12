@@ -1,0 +1,2 @@
+import{AutopilotService,type AutopilotFactory}from'./service';import{SupabaseAutopilotStore}from'./store';
+export const autopilotForEnv:AutopilotFactory=env=>new AutopilotService(new SupabaseAutopilotStore(env.SUPABASE_URL,env.SUPABASE_SERVICE_ROLE_KEY??''),{enabled:env.PHASE8_AUTOPILOT_ENABLED==='true',writesEnabled:env.PHASE8_AUTOPILOT_WRITES_ENABLED==='true',globalKill:env.PHASE8_GLOBAL_KILL_SWITCH==='true'});
